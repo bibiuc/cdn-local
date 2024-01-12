@@ -1,0 +1,28 @@
+{
+  "name": "gulp-jsdelivr-src",
+  "version": "1.0.0",
+  "description": "gulp jsdelivr cdn to local and create pipe, when close pipe remove runtime dir. ",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bibiuc/gulp-jsdelivr-src.git"
+  },
+  "keywords": [
+    "gulp",
+    "jsdelivr",
+    "cdn"
+  ],
+  "author": "bibiuc",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bibiuc/gulp-jsdelivr-src/issues"
+  },
+  "homepage": "https://github.com/bibiuc/gulp-jsdelivr-src#readme",
+  "dependencies": {
+    "axios": "^1.6.5",
+    "fs-extra": "^11.2.0"
+  }
+}

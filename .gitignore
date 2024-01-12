@@ -1,0 +1,5 @@
+.vscode
+.cache
+.history
+node_modules
+pnpm-lock.yaml
