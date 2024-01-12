@@ -6,13 +6,13 @@
 ### 安装
 
 ``` bash
-npm install @kiduc/jsdelivr-download --save-dev
-pnpm install @kiduc/jsdelivr-download --save-dev
-yarn install @kiduc/jsdelivr-download --save-dev
+npm install @pitue/jsdelivr-download --save-dev
+pnpm install @pitue/jsdelivr-download --save-dev
+yarn install @pitue/jsdelivr-download --save-dev
 ```
 ### 使用
 ``` javascript
-const download = require('@kiduc/jsdelivr-download')
+const download = require('@pitue/jsdelivr-download')
 
 download({
     dir: './.cache',

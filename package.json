@@ -1,5 +1,5 @@
 {
-  "name": "@kdiuc/cdn-download",
+  "name": "@pitue/cdn-download",
   "version": "0.0.1",
   "description": "jsdelivr cdn to local. ",
   "main": "index.js",
