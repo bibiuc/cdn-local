@@ -1,5 +1,5 @@
 {
-  "name": "@pitue/cdn-download",
+  "name": "@pitue/cdn-local",
   "version": "0.0.2",
   "description": "jsdelivr cdn to local. ",
   "main": "index.js",

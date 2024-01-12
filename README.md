@@ -1,4 +1,4 @@
-# Jsdelivr download
+# cdn-local
 这是一个jsdelivr的下载工具，主要是希望开发测试的时候将jsdelivr的npm包下载下来使用，bower现在更新很慢，所以弄了这么个东西
 
 ## API
@@ -6,13 +6,13 @@
 ### 安装
 
 ``` bash
-npm install @pitue/jsdelivr-download --save-dev
-pnpm install @pitue/jsdelivr-download --save-dev
-yarn install @pitue/jsdelivr-download --save-dev
+npm install @pitue/cdn-local --save-dev
+pnpm install @pitue/cdn-local --save-dev
+yarn install @pitue/cdn-local --save-dev
 ```
 ### 使用
 ``` javascript
-const download = require('@pitue/jsdelivr-download')
+const download = require('@pitue/cdn-local')
 
 download({
     dir: './.cache',
