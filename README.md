@@ -1,5 +1,5 @@
 # cdn-local
-这是一个jsdelivr的下载工具，主要是希望开发测试的时候将jsdelivr的npm包下载下来使用，bower现在更新很慢，所以弄了这么个东西
+这是一个cdn的下载工具，主要是希望开发测试的时候将cdn的npm包下下来使用，bower现在更新很慢，所以弄了这么个东西，现在暂时只有jsdelivr
 
 ## API
 这只是一个下载方法。
