@@ -6,51 +6,11 @@ const _config = {
     dir: '.cache'
 };
 
-const getVersion = async (axios, dependency, version) => {
-    const {data} = await axios.get(dependency)
-    version = version || 'latest'
-    if (data) {
-        throw new Error('Dependency Not Found')
-    }
-    if (data.tags && data.tags[version]) {
-        version = data.tags[version]
-    }
-    if (!data.versions) {
-        throw new Error('Dependency Version Not Found')
-    }
-    for (let i = 0; i < data.versions.length; i++) {
-        if (data.versions[i].version == version) {
-            return version
-        }        
-    }
-    throw new Error('Dependency Version Not Found')
-}
-
-const getFiles = async (axios, dependency, version) => {
-    const {data} = await axios.get(dependency + '@' + version)
-    return data ? data.files || [] : [];
-}
-
-const saveFile = async (axios, dir, file, retry) => {
-    let i = 0
-    let err
-    do {
-        try {
-            const filepath = path.join(dir, file.name)
-            const {data} = await axios.get(file.name, {
-                responseType: 'arraybuffer',
-            })
-            const saved = await fs.writeFile(filepath, data)
-            return saved;
-        } catch(e) {
-            err = e
-        }
-    } while(i < retry)
-    throw err
-}
-
-const save = async (axios, dir, file, retry) => {
+const save = async (saveFile, dir, file, retry, filter) => {
     const filepath = path.join(dir, file.name)
+    if (file.name && typeof filter == 'function' && !filter(file)) {
+        return
+    }
     if (file.type == 'directory') {
         if (!fs.existsSync(filepath)) {
             await fs.mkdir(filepath)
@@ -58,7 +18,7 @@ const save = async (axios, dir, file, retry) => {
         if (file.files) {
             await Promise.all(file.files.map((f) => {
                 f.name = path.join(file.name, f.name)
-                return save(axios, dir, f, retry)
+                return save(saveFile, dir, f, retry, filter)
             }))
         }
         return;
@@ -66,34 +26,87 @@ const save = async (axios, dir, file, retry) => {
     if (fs.existsSync(filepath)) {
         return
     }
-    return saveFile(axios, dir, file, retry);
+    return saveFile(dir, file, retry);
+}
+const cdns = {
+    jsdelivr: (sdkRoot = 'https://data.jsdelivr.com/v1/packages/npm/', cdnRoot = 'https://cdn.jsdelivr.net/npm/') => {
+        const apiAxios = Axios.create({
+            baseURL: sdkRoot
+        })
+        return {
+            async getVersion(dependency, version) {
+                const {data} = await apiAxios.getVersion(dependency)
+                version = version || 'latest'
+                if (data) {
+                    throw new Error('Dependency Not Found')
+                }
+                if (data.tags && data.tags[version]) {
+                    version = data.tags[version]
+                }
+                if (!data.versions) {
+                    throw new Error('Dependency Version Not Found')
+                }
+                for (let i = 0; i < data.versions.length; i++) {
+                    if (data.versions[i].version == version) {
+                        return version
+                    }        
+                }
+                throw new Error('Dependency Version Not Found')
+            },
+            async getFiles(dependency, version) {
+                const {data} = await apiAxios.get(dependency + '@' + version)
+                return data ? data.files || [] : [];
+            },
+            getSaveFile(dependency, version) {
+                const cdnAxios = Axios.create({
+                    baseURL: `${cdnRoot}${dependency}@${version}`
+                })
+                return async (dir, file, retry) => {
+                    let i = 0
+                    let err
+                    do {
+                        try {
+                            const filepath = path.join(dir, file.name)
+                            const {data} = await cdnAxios.get(file.name, {
+                                responseType: 'arraybuffer',
+                            })
+                            const saved = await fs.writeFile(filepath, data)
+                            return saved;
+                        } catch(e) {
+                            err = e
+                        }
+                    } while(i < retry)
+                    throw err
+                }
+            }
+        }
+    }
 }
 
-module.exports = async function(c) {
+module.exports = async function(c, cdn = cdns.jsdelivr()) {
     const config = Object.assign({}, _config, c);
     const dir = path.resolve(config.dir)
-    const apiAxios = Axios.create({
-        baseURL: 'https://data.jsdelivr.com/v1/packages/npm/'
-    })
     if (!fs.existsSync(dir)) {
         await fs.mkdir(dir)
     }
-    return Promise.all(config.dependencies.map(async ({dependency, version, alias}) => {
+    return Promise.all(config.dependencies.map(async ({dependency, version, alias, filter}) => {
         if (!alias) {
             alias = dependency
         }
         if (!version || version == 'latest') {
-            version = await getVersion(apiAxios, dependency, version)
+            version = await cdn.getVersion(dependency, version)
         }
-        const files = await getFiles(apiAxios, dependency, version)
+        const files = await cdn.getFiles(dependency, version)
         const file = {
             type: 'directory',
             name: '',
             files
         }
-        const cdnAxios = Axios.create({
-            baseURL: `https://cdn.jsdelivr.net/npm/${dependency}@${version}`
-        })
-        return save(cdnAxios, path.join(dir, alias), file, config.retry)
+        return save(cdn.getSaveFile(dependency, version), path.join(dir, alias), file, config.retry, filter)
     }));
 }
+
+module.exports.filters = {
+    dist: (file) => file.name.startsWith('dist' + path.sep) || file.name == 'dist'
+}
+module.exports.cdns = cdns

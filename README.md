@@ -17,22 +17,43 @@ const download = require('@pitue/cdn-local')
 download({
     dir: './.cache',
     dependencies: [
-        {dependency: 'jquery', version: '3.7.1', alias: 'jquery'},
+        {dependency: 'jquery', version: '3.7.1', alias: 'jquery', filter: download.filters.dist},
         {dependency: 'vue', version: '3.4.10'},
         {dependency: 'element-plus'}
     ],
     retry: 5
-})
+}, download.cdns.jsdelivr())
 ```
 
 
 ### 参数介绍
 
 ``` typescript
+
+class File {
+    type: 'file' | 'directory', 
+    name: string, // 这里会拼接上级路径 
+    files: File[]
+    ... // 其他的暂时没用到
+}
+
+type Filter = (file: File) => boolean 
+type GetVersion = (dependency: string, version?: string) => Promise<string>
+type GetFiles = (dependency: string, version: string) => Promise<File[]>
+type SaveFile = (dir: string, file: File, retry: number) => Promise<any>
+
+
+interface CDN {
+    getVersion： GetVersion
+    getFiles: GetFiles
+    getSaveFile: GetSaveFile
+}
+
 class Dependency {
     dependency: string // 库的名称
     version: string // 版本
     alias: string // 库的目标重命名
+    filter: Filter // 返回true则下载 false则不下载
 }
 
 class Config {
@@ -40,5 +61,11 @@ class Config {
     dependencies: Dependency[] // 下载的依赖
     retry: number // 重试次数
 }
+
+download(config: Config, cdn: CDN = download.cdns.jsdelivr())
+download.filters: Filter[]
+download.filters.dist // 只下载dist文件夹的文件
+download.cdns: Record<string, DefineCdn>
+download.cdns.jsdeliver // jsdelivr下载 参数是 sdkRoot = 'https://data.jsdelivr.com/v1/packages/npm/', cdnRoot = 'https://cdn.jsdelivr.net/npm/'
 
 ```
