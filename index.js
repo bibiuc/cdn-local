@@ -35,9 +35,9 @@ const cdns = {
         })
         return {
             async getVersion(dependency, version) {
-                const {data} = await apiAxios.getVersion(dependency)
+                const {data} = await apiAxios.get(dependency)
                 version = version || 'latest'
-                if (data) {
+                if (!data) {
                     throw new Error('Dependency Not Found')
                 }
                 if (data.tags && data.tags[version]) {
